@@ -1,0 +1,25 @@
+//@version = 5
+indicator("LDHCL", overlay = true)
+
+newDay = dayofmonth != dayofmonth[1]
+var float pdh = 0.00
+var float pdl = 0.00
+var float pdc = 0.00
+var float hi = 0
+var float lo = 1000000
+
+if newDay
+    pdc := nz(close[1], 0.00)
+    pdh := hi
+    pdl := lo
+    hi  := high
+    lo  := low
+else
+    if high > hi
+        hi := high
+    if low < lo
+        lo := low
+
+plot(timeframe.isintraday and (pdl > 0) ? pdl : na,"PDL",color = color.new(color.green,50),style = plot.style_circles, linewidth = 2)
+plot(timeframe.isintraday and (pdh > 0) ? pdh : na,"PDH",color = color.new(color.red,50),style = plot.style_circles, linewidth = 2)
+plot(timeframe.isintraday and (pdc > 0) ? pdc : na,"PDC",color = color.new(color.fuchsia, 70),style = plot.style_circles, linewidth = 2)
