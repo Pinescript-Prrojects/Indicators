@@ -20,7 +20,8 @@ var bool areLinesCreated = false  // To track if lines are created
 
 // constants
 var X_OFFSET = 0
-var Y_OFFSET = 50
+// Calculate X_OFFSET dynamically based on the current close price
+var float Y_OFFSET = close * 0.001
 
 newDay = dayofmonth != dayofmonth[1]
 startBarIndex = ta.valuewhen(newDay, bar_index, 0)
