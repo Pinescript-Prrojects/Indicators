@@ -13,6 +13,10 @@ var float highest = na
 var float lowest = na
 var line hiLine = na
 var line loLine = na
+var line breakoutTargetLine = na
+var line breakoutStopLine = na
+var line breakdownTargetLine = na
+var line breakdownStopLine = na
 var bool drawingStarted = false
 var bool isCrossOverDisplayed = false
 var bool isCrossUnderDisplayed = false
@@ -33,13 +37,17 @@ if (newDay)
     isCrossUnderDisplayed := false
     areLinesCreated := false  // Reset to false at the start of a new day
     drawingStarted := false // Reset to false at the start of a new day
+    breakoutTargetLine := na
+    breakoutStopLine := na
+    breakdownTargetLine := na
+    breakdownStopLine := na
 else
     if (hour == 9 and (minute < startMinute))
         highest := high > highest ? high : highest
         lowest := low < lowest ? low : lowest
     else if (hour == 9 and (minute == startMinute))
-        hiLine := line.new(x1 = startBarIndex, y1 = highest, x2 = bar_index, y2 = highest, color = color.green)
-        loLine := line.new(x1 = startBarIndex, y1 = lowest, x2 = bar_index, y2 = lowest, color = color.red)
+        hiLine := line.new(x1 = startBarIndex, y1 = highest, x2 = bar_index, y2 = highest, color = color.blue)
+        loLine := line.new(x1 = startBarIndex, y1 = lowest, x2 = bar_index, y2 = lowest, color = color.blue)
         drawingStarted := true
         areLinesCreated := true  // Set to true when lines are created
     else
@@ -58,6 +66,9 @@ if areLinesCreated and high > hiLine.get_y1() and not isCrossOverDisplayed
       style = label.style_label_down, 
       color = color.green
       )
+    if syminfo.ticker == "BANKNIFTY"
+        breakoutTargetLine := line.new(x1 = bar_index, y1 = hiLine.get_y1() + 150, x2 = bar_index, y2 = hiLine.get_y1() + 150, color = color.green)
+        breakoutStopLine := line.new(x1 = bar_index, y1 = hiLine.get_y1() - 100, x2 = bar_index, y2 = hiLine.get_y1() - 100, color = color.red)
     isCrossOverDisplayed := true
 
 // Cross-under condition
@@ -69,4 +80,13 @@ if areLinesCreated and low < loLine.get_y1() and not isCrossUnderDisplayed
       style=label.style_label_up, 
       color=color.red
       )
+    if syminfo.ticker == "BANKNIFTY"
+        breakdownTargetLine := line.new(x1 = bar_index, y1 = loLine.get_y1() - 150, x2 = bar_index, y2 = loLine.get_y1() - 150, color = color.green)
+        breakdownStopLine := line.new(x1 = bar_index, y1 = loLine.get_y1() + 100, x2 = bar_index, y2 = loLine.get_y1() + 100, color = color.red, style = line.style_dashed)
     isCrossUnderDisplayed := true
+
+if not na(breakoutTargetLine) and not na(breakoutStopLine)
+    line.set_x2(breakoutTargetLine, bar_index)
+    line.set_x2(breakoutStopLine, bar_index)
+    line.set_x2(breakdownTargetLine, bar_index)
+    line.set_x2(breakdownStopLine, bar_index)
