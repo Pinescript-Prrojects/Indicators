@@ -1,0 +1,71 @@
+//@version=5
+indicator("Opening Range Breakout Marker", overlay = true)
+
+timeFrame = input.timeframe("15", "Timeframe for Opening Range")
+
+// The start time for drawing after 9'O Clock in minutes for different time frames
+startMinute = switch timeFrame
+    "5"  => 21 
+    "15" => 33
+    "30" => 48
+
+var float highest = na
+var float lowest = na
+var line hiLine = na
+var line loLine = na
+var bool drawingStarted = false
+var bool isCrossOverDisplayed = false
+var bool isCrossUnderDisplayed = false
+var bool areLinesCreated = false  // To track if lines are created
+
+// constants
+var X_OFFSET = 0
+var Y_OFFSET = 50
+
+newDay = dayofmonth != dayofmonth[1]
+startBarIndex = ta.valuewhen(newDay, bar_index, 0)
+
+if (newDay)
+    highest := high
+    lowest := low
+    isCrossOverDisplayed := false
+    isCrossUnderDisplayed := false
+    areLinesCreated := false  // Reset to false at the start of a new day
+    drawingStarted := false // Reset to false at the start of a new day
+else
+    if (hour == 9 and (minute < startMinute))
+        highest := high > highest ? high : highest
+        lowest := low < lowest ? low : lowest
+    else if (hour == 9 and (minute == startMinute))
+        hiLine := line.new(x1 = startBarIndex, y1 = highest, x2 = bar_index, y2 = highest, color = color.green)
+        loLine := line.new(x1 = startBarIndex, y1 = lowest, x2 = bar_index, y2 = lowest, color = color.red)
+        drawingStarted := true
+        areLinesCreated := true  // Set to true when lines are created
+    else
+        line.set_x2(hiLine, bar_index)
+        line.set_x2(loLine, bar_index)
+        drawingStarted := false
+
+plotshape(drawingStarted, style = shape.diamond)
+
+// Cross-over condition
+if areLinesCreated and high > hiLine.get_y1() and not isCrossOverDisplayed
+    label.new(
+      x = bar_index - X_OFFSET, 
+      y = high + Y_OFFSET,
+      text = str.tostring(hour) + "." + str.tostring(minute) + "\n" + str.tostring(volume / 1000) + "K",
+      style = label.style_label_down, 
+      color = color.green
+      )
+    isCrossOverDisplayed := true
+
+// Cross-under condition
+if areLinesCreated and low < loLine.get_y1() and not isCrossUnderDisplayed
+    label.new(
+      x = bar_index - X_OFFSET,
+      y = low - Y_OFFSET, 
+      text = str.tostring(hour) + "." + str.tostring(minute) + "\n" + str.tostring(volume / 1000) + "K",
+      style=label.style_label_up, 
+      color=color.red
+      )
+    isCrossUnderDisplayed := true
